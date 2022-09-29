@@ -8,7 +8,29 @@ from selenium.common.exceptions import NoSuchElementException
 import json
 import re
 
-def fetch_image_urls ():
+def fetch_image_urls(config):
+
+    # url of google news website
+    input_success = False
+    while not input_success:
+        url = input("URL in Config is: " + config['url'] + "\nPress ENTER to use this or enter your BiBox url:\n")
+        if url == '': 
+            url = config['url']
+            break
+        
+        url_regex = re.search(r'https://bibox2\.westermann\.de/book/[0-9]+/page/1', url)
+        if url_regex:
+            input_success = True
+        else:
+            print("The provided URL is not valid")
+    
+    username = input("Username in Config is: " + config['username'] + "\nPress ENTER to use this as your BiBox User or enter your BiBox Username:\n ")
+    password = ''
+    if username == '':
+        username = config['username']
+        password = config['password']
+    else:
+        password = input("Please Enter your Password\n")
     
     # path of the chromedriver we have just downloaded
     PATH = r"C:\chromedriver"
@@ -35,52 +57,40 @@ def fetch_image_urls ():
         chrome_options=options,
         desired_capabilities=desired_capabilities
     )
-
-    # url of google news website
-    url = 'https://bibox2.westermann.de/shelf/'
     
-    # Opening JSON file
-    with open('user.json') as json_file:
-        user_data = json.load(json_file)
-
     # to open the url in the browser
+    print('Start webdriver')
     driver.get(url)
 
     time.sleep(3)
 
+    print('Login')
     user_name = driver.find_element(By.ID, "account")
     user_pwd = driver.find_element(By.ID, "password")
     button_login = driver.find_element(By.NAME, "action")
-    user_name.send_keys(user_data['name'])
-    user_pwd.send_keys(user_data['password'])
+    user_name.send_keys(username)
+    user_pwd.send_keys(password)
     button_login.click()
 
-    time.sleep(3)
-    book = driver.find_element(By.TAG_NAME, "app-shelf-item")
-    book.click()
-    bookButton = driver.find_element(By.CLASS_NAME, "book-action")
-    # time.sleep(2)
-    bookButton.click()
-    # print(books)
-    
     time.sleep(5)
     
+    print('Force all Images to load')
     last_page = False
     waited = 0
     while last_page == False:
         try:
-            print("next page")
             next = driver.find_element(By.XPATH, "//button[@title= 'weiterblättern' and contains(@class,'visible')]")
             next.click()
         except NoSuchElementException:
             if waited >= 5:
                 waited += 0.25
             else:
-                print ("no next page")
+                print ("last page reached")
                 last_page = True
 
 
     # Gets all the logs from performance in Chrome
+    print('log driver network log')
     logs = driver.get_log("performance")
     
     # Opens a writable JSON file and writes the logs in it
@@ -108,22 +118,21 @@ def fetch_image_urls ():
   
     # Read the JSON File and parse it using
     # json.loads() to find the urls containing images.
+    print('read network_log.json and convert to DICT')
     json_file_path = "network_log.json"
     with open(json_file_path, "r", encoding="utf-8") as f:
         logs = json.loads(f.read())
   
-    url_dict = {}
-  
     # Iterate the logs
+    print('Extract urls')
+    url_dict = {}
     for log in logs:
-  
         # Except block will be accessed if any of the
         # following keys are missing.
         try:
             # URL is present inside the following keys
             url = log["params"]["request"]["url"]
             if re.search("\/bookpages\/.*\.png", url):
-                print(url)
                 match = re.search("(?<===/)[a-zA-Z0-9]*(?=.png)", url)
                 if match:
                     page = match.group()
@@ -132,8 +141,7 @@ def fetch_image_urls ():
         except Exception as e:
             pass
     
-    print(url_dict)
-    
+    print('Save url DICT into pages.json')
     pages_file_path = "pages.json"
     with open(pages_file_path, 'w') as convert_file:
      convert_file.write(json.dumps(url_dict))
