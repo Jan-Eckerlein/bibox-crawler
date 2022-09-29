@@ -1,6 +1,7 @@
 from asyncio.windows_events import NULL
 from functions.fetch_image_urls import fetch_image_urls
 from functions.save_images import save_images 
+from functions.create_pdf import create_pdf
 import json
 import re
 
@@ -21,4 +22,4 @@ if __name__ == "__main__":
         save_images()
     
     if option == '3':
-        print("this function is WIP")
+        create_pdf()
