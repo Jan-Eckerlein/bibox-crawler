@@ -5,13 +5,7 @@ import os
 def create_pdf():
     pdf = FPDF()
 
-    imagelist = os.listdir('./images/')
-    # print(images)
-    
-    if not os.path.exists("./output"):
-        os.makedirs("./output")
-    
-    
+    imagelist = os.listdir('./images/')    
     # imagelist is the list with all image filenames
     for image in imagelist:
         pdf.add_page()

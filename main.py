@@ -3,9 +3,16 @@ from functions.fetch_image_urls import fetch_image_urls
 from functions.save_images import save_images 
 from functions.create_pdf import create_pdf
 import json
+import os
 import re
 
 if __name__ == "__main__":
+    # create Folders:
+    dirs = ["./output", "./images"]
+    for dir in dirs:
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+    
     option = NULL
     
     # Opening JSON file
