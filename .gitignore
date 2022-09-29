@@ -1,2 +1,4 @@
-user.json
+config.json
 __pycache__/
+images/
+storage/

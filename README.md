@@ -1,1 +1,3 @@
 # bibox-crawler
+
+```pip install fpdf```
